@@ -1,0 +1,13 @@
+---
+- name: Update all packages on amazon-linux
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+  become: true
+
+- name: Install Nginx on amazon-linux
+  ansible.builtin.dnf:
+    name: nginx
+    state: present
+  become: true
+  notify: Restart Nginx

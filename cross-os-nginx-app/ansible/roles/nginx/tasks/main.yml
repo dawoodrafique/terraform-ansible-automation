@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: MIT-0
+---
+- name: Include OS-specific tasks
+  ansible.builtin.include_tasks: "{{ ansible_distribution | lower }}_spec_tasks.yml"
+
+- name: Enable and start Nginx
+  ansible.builtin.systemd_service:
+    name: nginx
+    state: started
+    enabled: true
+  become: true
+
+- name: Get Nginx version
+  ansible.builtin.command: nginx -v
+  register: nginx_version
+  changed_when: false
+
+- name: Print Nginx version
+  ansible.builtin.debug:
+    var: nginx_version.stderr
+
+- name: Copy index.html (Ubuntu)
+  ansible.builtin.copy:
+    src: index.html
+    dest: /var/www/html/index.html
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify: Restart Nginx
+  when: ansible_distribution | lower == "ubuntu"
+
+- name: Copy index.html (RedHat/Amazon)
+  ansible.builtin.copy:
+    src: index.html
+    dest: /usr/share/nginx/html/index.html
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify: Restart Nginx
+  when: ansible_distribution | lower in ["redhat", "amazon"]
